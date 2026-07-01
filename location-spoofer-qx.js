@@ -403,8 +403,8 @@
   }
 
   function doneWithArrayBuffer(uint8) {
-    // 仅作为没拿到原响应头时的 fallback；
-    // 主路径在 runQX 里内联处理 headers。
+    // QX 官方 sample-bytes-rewrite.js 示例：
+    //   $done({bodyBytes: otherUint8.buffer.slice(byteOffset, byteOffset + byteLength)})
     $done({
       bodyBytes: uint8.buffer.slice(
         uint8.byteOffset,
@@ -436,30 +436,7 @@
         if (config.debug) console.log("Location spoofer patched " + result.wifiCount + " wifi, " + result.cellCount + " cell, kind=" + result.kind + ", response=" + result.response.length + " bytes");
         if (config.debug) console.log("Location spoofer locations: " + patchedPayloadSummary(result.payload));
 
-        var out = result.response;
-        var outAb = out.buffer.slice(out.byteOffset, out.byteOffset + out.byteLength);
-        var srcHeaders = ($response && $response.headers) || {};
-
-        // 复制原响应头，过滤掉按 body 自动计算的字段
-        var outHeaders = {};
-        for (var hk in srcHeaders) {
-          if (!Object.prototype.hasOwnProperty.call(srcHeaders, hk)) continue;
-          var hkLow = hk.toLowerCase();
-          if (hkLow === "content-length" || hkLow === "content-encoding" || hkLow === "transfer-encoding") continue;
-          outHeaders[hk] = srcHeaders[hk];
-        }
-        outHeaders["Content-Type"] = "application/octet-stream";
-        outHeaders["Content-Length"] = String(out.byteLength);
-        if (config.debug) {
-          outHeaders["X-Location-Spoofer-Wifi-Count"] = String(result.wifiCount);
-          outHeaders["X-Location-Spoofer-Cell-Count"] = String(result.cellCount || 0);
-          console.log("Location spoofer QX writing bodyBytes=" + out.byteLength + " with rewritten headers");
-        }
-
-        $done({
-          headers: outHeaders,
-          bodyBytes: outAb
-        });
+        doneWithArrayBuffer(result.response);
       } catch (err) {
         if (config.debug) console.log("Location spoofer failed: " + err.message);
         $done({});
