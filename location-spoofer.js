@@ -413,6 +413,11 @@
     // 使用 Math.trunc 精确匹配 Go: int64(coord * 1e8)
     return Math.trunc(Number(value) * 100000000);
   }
+  function randomOffsetMeters(maxMeters) {
+  // 1 độ ≈ 111,111 mét
+  var maxDeg = maxMeters / 111111;
+  return (Math.random() * 2 - 1) * maxDeg;
+}
 
   function parseBoolean(value, defaultValue) {
     if (value === true || value === false) {
@@ -451,7 +456,7 @@
     cfg.mode = mode === "request" || mode === "prepare" || mode === "probe" || mode === "inspect" ? mode : "response";
     cfg.latitude = Number(cfg.latitude);
     cfg.longitude = Number(cfg.longitude);
-    cfg.horizontalAccuracy = Math.trunc(Number(cfg.horizontalAccuracy));
+    cfg.horizontalAccuracy = 15 + Math.floor(Math.random() * 10);
     cfg.verticalAccuracy = Math.trunc(Number(cfg.verticalAccuracy));
     cfg.altitude = Math.trunc(Number(cfg.altitude));
     cfg.unknownValue4 = Math.trunc(Number(cfg.unknownValue4));
@@ -471,6 +476,11 @@
     if (!Number.isFinite(cfg.longitude) || cfg.longitude < -180 || cfg.longitude > 180) {
       throw new Error("invalid longitude");
     }
+    // ✅ RANDOM nhẹ dưới 15 mét
+    var RANDOM_RADIUS_METERS = 15; // <15m an toàn
+
+    cfg.latitude = cfg.latitude + randomOffsetMeters(RANDOM_RADIUS_METERS);
+    cfg.longitude = cfg.longitude + randomOffsetMeters(RANDOM_RADIUS_METERS);
     return cfg;
   }
 
